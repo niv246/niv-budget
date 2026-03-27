@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  VIEWER
+}
+
+enum ExpenseSource {
+  TELEGRAM
+  WEB
+}
+
+model User {
+  id             String   @id @default(cuid())
+  name           String
+  role           Role     @default(OWNER)
+  telegramChatId String?  @unique
+  accessToken    String   @unique @default(cuid())
+  createdAt      DateTime @default(now())
+
+  expenses      Expense[]
+  incomeSources IncomeSource[]
+  fixedExpenses FixedExpense[]
+  loanPayments  LoanPayment[]
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  icon      String
+  keywords  String[]
+  color     String
+  sortOrder Int       @default(0)
+  expenses  Expense[]
+}
+
+model IncomeSource {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id])
+  name     String
+  amount   Float
+  isActive Boolean @default(true)
+}
+
+model FixedExpense {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id])
+  name     String
+  amount   Float
+  dueDay   Int?
+  isActive Boolean @default(true)
+}
+
+model Expense {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  description String
+  amount      Float
+  source      ExpenseSource @default(TELEGRAM)
+  createdAt   DateTime      @default(now())
+  month       Int
+  year        Int
+
+  @@index([userId, month, year])
+  @@index([categoryId])
+}
+
+model LoanPayment {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id])
+  amount Float
+  note   String?
+  paidAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model UserSettings {
+  id                  String   @id @default(cuid())
+  loanTotal           Float    @default(0)
+  loanMonthlyPayment  Float    @default(0)
+  loanStartDate       DateTime @default(now())
+  weeklyReportEnabled Boolean  @default(true)
+  weeklyReportDay     Int      @default(0)
+  monthlyBudgetLimit  Float?
+  alertThreshold      Int      @default(80)
+  isOnboarded         Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
