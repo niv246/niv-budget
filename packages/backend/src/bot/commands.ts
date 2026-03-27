@@ -324,7 +324,7 @@ async function handleExport(bot: TelegramBot, chatId: number, parts: string[]) {
     orderBy: { createdAt: 'desc' },
   });
 
-  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const total = expenses.reduce((sum: number, e) => sum + e.amount, 0);
   const formatted = expenses.map((e) => ({
     description: e.description,
     amount: e.amount,

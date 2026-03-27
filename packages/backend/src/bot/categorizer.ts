@@ -1,8 +1,14 @@
 import prisma from '../prisma';
 
-let categoriesCache: { id: string; name: string; keywords: string[] }[] | null = null;
+interface CachedCategory {
+  id: string;
+  name: string;
+  keywords: string[];
+}
 
-async function getCategories() {
+let categoriesCache: CachedCategory[] | null = null;
+
+async function getCategories(): Promise<CachedCategory[]> {
   if (!categoriesCache) {
     categoriesCache = await prisma.category.findMany({
       select: { id: true, name: true, keywords: true },
@@ -31,6 +37,6 @@ export async function categorize(description: string): Promise<string> {
   }
 
   // Fallback to "אחר"
-  const other = categories.find((c) => c.name === 'אחר');
+  const other = categories.find((c: CachedCategory) => c.name === 'אחר');
   return other?.id || categories[categories.length - 1].id;
 }

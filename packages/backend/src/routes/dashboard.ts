@@ -23,7 +23,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       }),
     ]);
 
-    const totalExpenses = categories.reduce((sum, c) => sum + c.total, 0);
+    const totalExpenses = categories.reduce((sum: number, c) => sum + c.total, 0);
     const byCategory = categories
       .filter((c) => c.total > 0)
       .map((c) => ({

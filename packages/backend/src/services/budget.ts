@@ -10,10 +10,10 @@ export async function getBudgetStatus(month: number, year: number) {
     prisma.expense.findMany({ where: { month, year } }),
   ]);
 
-  const totalIncome = incomeSources.reduce((sum, s) => sum + s.amount, 0);
-  const totalFixed = fixedExpenses.reduce((sum, s) => sum + s.amount, 0);
+  const totalIncome = incomeSources.reduce((sum: number, s) => sum + s.amount, 0);
+  const totalFixed = fixedExpenses.reduce((sum: number, s) => sum + s.amount, 0);
   const loanMonthlyPayment = settings.loanMonthlyPayment;
-  const totalVariable = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalVariable = expenses.reduce((sum: number, e) => sum + e.amount, 0);
   const availableBudget = totalIncome - totalFixed - loanMonthlyPayment;
   const remaining = availableBudget - totalVariable;
   const budgetPercent = availableBudget > 0 ? Math.round((totalVariable / availableBudget) * 100) : 0;
@@ -39,7 +39,7 @@ export async function getCategoryBreakdown(month: number, year: number) {
 
   return categories.map((cat) => {
     const catExpenses = expenses.filter((e) => e.categoryId === cat.id);
-    const total = catExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const total = catExpenses.reduce((sum: number, e) => sum + e.amount, 0);
     return {
       id: cat.id,
       name: cat.name,
@@ -56,7 +56,7 @@ export async function getLoanStatus() {
   if (!settings) throw new Error('Settings not found');
 
   const payments = await prisma.loanPayment.findMany();
-  const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+  const totalPaid = payments.reduce((sum: number, p) => sum + p.amount, 0);
   const remaining = settings.loanTotal - totalPaid;
   const monthsLeft = settings.loanMonthlyPayment > 0
     ? Math.ceil(remaining / settings.loanMonthlyPayment)
@@ -74,7 +74,6 @@ export async function getLoanStatus() {
 
 export async function getWeeklyComparison(year: number) {
   const now = new Date();
-  // Get start of current week (Sunday)
   const currentDay = now.getDay();
   const thisWeekStart = new Date(now);
   thisWeekStart.setDate(now.getDate() - currentDay);
@@ -94,8 +93,8 @@ export async function getWeeklyComparison(year: number) {
     }),
   ]);
 
-  const thisWeek = thisWeekExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const lastWeek = lastWeekExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const thisWeek = thisWeekExpenses.reduce((sum: number, e) => sum + e.amount, 0);
+  const lastWeek = lastWeekExpenses.reduce((sum: number, e) => sum + e.amount, 0);
   const trend: 'up' | 'down' | 'same' = thisWeek > lastWeek ? 'up' : thisWeek < lastWeek ? 'down' : 'same';
 
   return { thisWeek, lastWeek, trend };

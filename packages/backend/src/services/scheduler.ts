@@ -5,8 +5,6 @@ import { getBudgetStatus, getCategoryBreakdown, getLoanStatus } from './budget';
 import { formatCurrency } from '../bot/responses';
 
 export function startWeeklyScheduler() {
-  // Sunday at 10:00 Israel time (UTC+2/+3)
-  // Using cron timezone support
   cron.schedule('0 10 * * 0', async () => {
     console.log('Running weekly summary...');
     await sendWeeklySummary();
@@ -25,7 +23,6 @@ export async function sendWeeklySummary() {
     const settings = await prisma.userSettings.findFirst();
     if (!settings?.weeklyReportEnabled) return;
 
-    // Find all users with telegramChatId
     const users = await prisma.user.findMany({
       where: { telegramChatId: { not: null } },
     });
@@ -36,7 +33,6 @@ export async function sendWeeklySummary() {
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    // Calculate week range (Sun to Sat)
     const currentDay = now.getDay();
     const weekStart = new Date(now);
     weekStart.setDate(now.getDate() - currentDay);
@@ -52,11 +48,8 @@ export async function sendWeeklySummary() {
     const categories = await getCategoryBreakdown(month, year);
     const loan = await getLoanStatus();
 
-    // Get top 3 expenses this week
     const weekExpenses = await prisma.expense.findMany({
-      where: {
-        createdAt: { gte: weekStart, lte: now },
-      },
+      where: { createdAt: { gte: weekStart, lte: now } },
       include: { category: true },
       orderBy: { amount: 'desc' },
       take: 3,
@@ -67,7 +60,7 @@ export async function sendWeeklySummary() {
       .map((c) => `  ${c.icon} ${c.name}: ${formatCurrency(c.total)}`);
 
     const topLines = weekExpenses.map(
-      (e, i) => `  ${i + 1}. ${e.description} — ${formatCurrency(e.amount)}`,
+      (e, i: number) => `  ${i + 1}. ${e.description} — ${formatCurrency(e.amount)}`,
     );
 
     const message = [
@@ -87,7 +80,6 @@ export async function sendWeeklySummary() {
       `📋 הלוואה: שולם ${formatCurrency(loan.paid)} מתוך ${formatCurrency(loan.total)} (נותרו ${loan.monthsLeft} חודשים)`,
     ].join('\n');
 
-    // Send to all connected users
     for (const user of users) {
       try {
         await bot.sendMessage(parseInt(user.telegramChatId!), message);

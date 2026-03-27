@@ -2,8 +2,9 @@ import { z } from 'zod';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env from project root
+// Load .env - try project root (dev) or current dir (prod)
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+dotenv.config(); // fallback to process.env (Railway injects vars directly)
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1),

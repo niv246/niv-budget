@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../prisma';
-import { User } from '@prisma/client';
+
+// Use Prisma's inferred types
+type UserRecord = Awaited<ReturnType<typeof prisma.user.findUnique>> & {};
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: UserRecord;
     }
   }
 }
