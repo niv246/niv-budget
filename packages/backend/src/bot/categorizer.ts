@@ -15,7 +15,7 @@ async function getCategories(): Promise<CachedCategory[]> {
       orderBy: { sortOrder: 'asc' },
     });
   }
-  return categoriesCache;
+  return categoriesCache!;
 }
 
 export function clearCategoryCache() {
